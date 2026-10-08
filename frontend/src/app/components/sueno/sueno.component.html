@@ -1,0 +1,165 @@
+<div class="view-container">
+  <div class="page-title-box">
+    <div>
+      <h2>🌙 Monitoreo de Sueño y Descanso</h2>
+      <p class="subtitle">Registra tus horas de sueño diario para prevenir la fatiga y mejorar tu rendimiento académico.</p>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="exitoMsg" class="alert-box success">
+    ✅ {{ exitoMsg }}
+    <button (click)="exitoMsg = ''" class="close-btn">✕</button>
+  </div>
+
+  <div *ngIf="errorMsg" class="alert-box danger">
+    ⚠️ {{ errorMsg }}
+    <button (click)="errorMsg = ''" class="close-btn">✕</button>
+  </div>
+
+  <div class="two-column-grid">
+    
+    <!-- Form Card -->
+    <div class="card-box">
+      <h3>{{ editandoId ? '✏️ Editar Registro de Sueño' : '➕ Nuevo Registro de Sueño' }}</h3>
+      
+      <form [formGroup]="suenoForm" (ngSubmit)="onSubmit()" class="form-grid">
+        
+        <div class="form-group">
+          <label>Fecha del Registro</label>
+          <input type="date" formControlName="fecha" class="form-control" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Hora de Dormir</label>
+            <input type="time" formControlName="horaDormir" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Hora de Despertar</label>
+            <input type="time" formControlName="horaDespertar" class="form-control" />
+          </div>
+        </div>
+
+        <!-- Calculated Hours Preview -->
+        <div class="calculated-preview-box">
+          <span>⏱️ Horas Calculadas:</span>
+          <strong>{{ horasCalculadas }} horas</strong>
+          <small *ngIf="horasCalculadas < 6" class="text-danger"> (⚠️ Por debajo del recomendado de 6h)</small>
+          <small *ngIf="horasCalculadas >= 6" class="text-success"> (✅ Buen tiempo de descanso)</small>
+        </div>
+
+        <div class="form-group">
+          <label>Calidad del Sueño (1 = Muy Malo, 5 = Excelente)</label>
+          <div class="star-rating">
+            <label *ngFor="let n of [1,2,3,4,5]" class="rating-option">
+              <input type="radio" formControlName="calidadSueno" [value]="n" />
+              <span>{{ n }} ⭐</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="!editandoId">
+          <label>Nivel de Estrés Percibido Opcional (1 al 5)</label>
+          <select formControlName="nivelEstres" class="form-control">
+            <option [ngValue]="null">No registrar estrés hoy</option>
+            <option [value]="1">1 - Muy Bajo / Relajado</option>
+            <option [value]="2">2 - Bajo</option>
+            <option [value]="3">3 - Moderado</option>
+            <option [value]="4">4 - Alto</option>
+            <option [value]="5">5 - Muy Alto / Agotado</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Observaciones o Notas (Opcional)</label>
+          <textarea formControlName="observacion" rows="2" placeholder="Ej. Insomnio por examen, tomé té de manzanilla..." class="form-control"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" [disabled]="guardando || suenoForm.invalid" class="btn btn-primary">
+            {{ guardando ? 'Guardando...' : (editandoId ? 'Guardar Cambios' : 'Registrar Sueño') }}
+          </button>
+          <button type="button" *ngIf="editandoId" (click)="cancelarEdicion()" class="btn btn-secondary">
+            Cancelar
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Chart Card -->
+    <div class="card-box">
+      <h3>📊 Historial Semanal de Sueño</h3>
+      <p class="subtext">Registros recientes de los últimos 7 días. Las barras en rojo indican déficit (&lt; 6h).</p>
+      <div class="chart-container">
+        <canvas #chartCanvas></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Records Table -->
+  <div class="card-box margin-top">
+    <h3>📋 Historial Completo de Registros</h3>
+    
+    <div *ngIf="cargando" class="state-card loading">
+      <div class="spinner"></div>
+      <p>Cargando historial de sueño...</p>
+    </div>
+
+    <div *ngIf="!cargando && !registros.length" class="empty-state">
+      <p>Aún no has registrado ningún hábito de sueño. ¡Comienza completando el formulario arriba!</p>
+    </div>
+
+    <div *ngIf="!cargando && registros.length" class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Hora Dormir</th>
+            <th>Hora Despertar</th>
+            <th>Total Horas</th>
+            <th>Calidad</th>
+            <th>Observación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of registros">
+            <td>{{ r.fecha | date:'fullDate' }}</td>
+            <td>{{ r.horaDormir }}</td>
+            <td>{{ r.horaDespertar }}</td>
+            <td>
+              <strong [ngClass]="r.horasSueno < 6 ? 'text-danger' : 'text-success'">
+                {{ r.horasSueno }}h
+              </strong>
+            </td>
+            <td>{{ r.calidadSueno }}/5 ⭐</td>
+            <td>{{ r.observacion || '-' }}</td>
+            <td>
+              <div class="table-actions">
+                <button (click)="editar(r)" class="btn-icon" title="Editar">✏️</button>
+                <button (click)="confirmarEliminar(r)" class="btn-icon danger" title="Eliminar">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación de Eliminación -->
+  <div *ngIf="registroAEliminar" class="modal-overlay">
+    <div class="modal-card">
+      <h3>⚠️ Confirmar Eliminación</h3>
+      <p>¿Estás seguro de que deseas eliminar el registro de sueño del {{ registroAEliminar.fecha | date:'shortDate' }} ({{ registroAEliminar.horasSueno }}h)?</p>
+      <div class="modal-actions">
+        <button (click)="eliminarConfirmado()" class="btn btn-danger">Sí, Eliminar</button>
+        <button (click)="cancelarEliminar()" class="btn btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

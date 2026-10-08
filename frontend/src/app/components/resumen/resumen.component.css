@@ -1,0 +1,191 @@
+.view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.page-title-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.stat-card {
+  background: rgba(30, 41, 59, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  backdrop-filter: blur(8px);
+}
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.stat-icon {
+  font-size: 1.2rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.stat-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.subtext {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0.25rem 0;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.bg-primary { background: #0284c7; }
+.bg-danger { background: #ef4444; }
+
+.recommendation-banner {
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.25) 0%, rgba(2, 132, 199, 0.2) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.banner-icon {
+  font-size: 2.2rem;
+}
+
+.banner-text h4 {
+  color: #38bdf8;
+  font-size: 1.05rem;
+  margin-bottom: 0.25rem;
+}
+
+.banner-text p {
+  color: #e2e8f0;
+  font-size: 0.925rem;
+  line-height: 1.5;
+}
+
+.charts-and-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.5rem;
+}
+
+.card-box {
+  background: rgba(30, 41, 59, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-box-header h3 {
+  font-size: 1.1rem;
+  color: #f1f5f9;
+}
+
+.chart-container {
+  position: relative;
+  height: 260px;
+  width: 100%;
+}
+
+.deliveries-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.delivery-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.delivery-color {
+  width: 10px;
+  height: 38px;
+  border-radius: 4px;
+}
+
+.delivery-details {
+  flex: 1;
+}
+
+.delivery-details h4 {
+  font-size: 0.95rem;
+  color: #f8fafc;
+  margin-bottom: 0.2rem;
+}
+
+.delivery-subject {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.delivery-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.due-date {
+  font-size: 0.8rem;
+  color: #e2e8f0;
+}

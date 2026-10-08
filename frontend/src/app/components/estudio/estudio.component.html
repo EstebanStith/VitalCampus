@@ -1,0 +1,162 @@
+<div class="view-container">
+  <div class="page-title-box">
+    <div>
+      <h2>⏱️ Registro de Horas de Estudio e Indicadores</h2>
+      <p class="subtitle">Mide tu dedicación académica semanal para balancear la carga de trabajo y prevenir el estrés.</p>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="exitoMsg" class="alert-box success">
+    ✅ {{ exitoMsg }}
+    <button (click)="exitoMsg = ''" class="close-btn">✕</button>
+  </div>
+
+  <div *ngIf="errorMsg" class="alert-box danger">
+    ⚠️ {{ errorMsg }}
+    <button (click)="errorMsg = ''" class="close-btn">✕</button>
+  </div>
+
+  <!-- Warning Banner if Workload > 70% -->
+  <div *ngIf="cargaInfo && cargaInfo.superaUmbralCarga" class="warning-banner-card danger">
+    <div class="banner-icon">⚠️</div>
+    <div class="banner-text">
+      <h4>¡Atención: Carga Académica Elevada ({{ cargaInfo.cargaSemanalPorcentaje }}%)!</h4>
+      <p>Has acumulado <strong>{{ cargaInfo.totalHorasEstudioUltimos7Dias }} horas de estudio</strong> en los últimos 7 días, superando el umbral saludable del 70% (40 horas semanales). Te sugerimos programar descansos y pausas activas.</p>
+    </div>
+  </div>
+
+  <div class="two-column-grid">
+    
+    <!-- Form Card -->
+    <div class="card-box">
+      <h3>➕ Registrar Sesión de Estudio</h3>
+      
+      <form [formGroup]="estudioForm" (ngSubmit)="onSubmit()" class="form-grid">
+        
+        <div class="form-group">
+          <label>Asignatura *</label>
+          <select formControlName="asignaturaId" class="form-control">
+            <option [ngValue]="null" disabled>-- Selecciona asignatura --</option>
+            <option *ngFor="let a of asignaturas" [value]="a.id">
+              {{ a.nombre }}
+            </option>
+          </select>
+          <small *ngIf="!asignaturas.length" class="text-danger">⚠️ Necesitas registrar materias primero.</small>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha de la Sesión *</label>
+            <input type="date" formControlName="fecha" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Horas Estudiadas *</label>
+            <input type="number" step="0.5" formControlName="horasEstudio" min="0.5" max="16" placeholder="Ej. 2.5" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Observaciones o Temas Repasados (Opcional)</label>
+          <textarea formControlName="observacion" rows="2" placeholder="Ej. Repaso de consultas Prisma, resolución de ejercicios..." class="form-control"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" [disabled]="guardando || estudioForm.invalid" class="btn btn-primary">
+            {{ guardando ? 'Guardando...' : 'Registrar Sesión' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Indicator Stat Card -->
+    <div class="card-box">
+      <h3>📊 Indicador de Carga Semanal</h3>
+      
+      <div *ngIf="cargando" class="state-card loading">
+        <div class="spinner"></div>
+        <p>Calculando carga académica...</p>
+      </div>
+
+      <div *ngIf="!cargando && cargaInfo" class="indicator-details">
+        
+        <div class="stat-big-box">
+          <span class="stat-number" [ngClass]="cargaInfo.superaUmbralCarga ? 'text-danger' : 'text-primary'">
+            {{ cargaInfo.cargaSemanalPorcentaje }}%
+          </span>
+          <span class="stat-label">Carga Académica Semanal</span>
+        </div>
+
+        <div class="progress-bar-bg large">
+          <div class="progress-bar-fill"
+               [style.width.%]="cargaInfo.cargaSemanalPorcentaje"
+               [ngClass]="cargaInfo.superaUmbralCarga ? 'bg-danger' : 'bg-primary'">
+          </div>
+        </div>
+
+        <div class="metric-list">
+          <div class="metric-row">
+            <span>⏱️ Total Horas 7 Días:</span>
+            <strong>{{ cargaInfo.totalHorasEstudioUltimos7Dias }} horas</strong>
+          </div>
+          <div class="metric-row">
+            <span>🎯 Umbral Máximo Recomendado:</span>
+            <strong>40 horas (100%) / 28 horas (70%)</strong>
+          </div>
+          <div class="metric-row">
+            <span>🌙 Sueño Promedio 7 Días:</span>
+            <strong>{{ cargaInfo.promedioSuenoUltimos7Dias }} horas</strong>
+          </div>
+          <div class="metric-row">
+            <span>⚡ Estrés Actual:</span>
+            <strong>{{ cargaInfo.nivelEstresActual }}/5</strong>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- History Table -->
+  <div class="card-box margin-top">
+    <h3>📋 Sesiones de Estudio Recientes</h3>
+
+    <div *ngIf="cargando" class="state-card loading">
+      <div class="spinner"></div>
+      <p>Cargando sesiones...</p>
+    </div>
+
+    <div *ngIf="!cargando && !registros.length" class="empty-state">
+      <p>No has registrado ninguna sesión de estudio aún.</p>
+    </div>
+
+    <div *ngIf="!cargando && registros.length" class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Asignatura</th>
+            <th>Horas</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of registros">
+            <td>{{ r.fecha | date:'fullDate' }}</td>
+            <td>
+              <span class="subject-badge" [style.background-color]="r.asignatura?.color || '#0f766e'">
+                {{ r.asignatura?.nombre }}
+              </span>
+            </td>
+            <td><strong>{{ r.horasEstudio }} hrs</strong></td>
+            <td>{{ r.observacion || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

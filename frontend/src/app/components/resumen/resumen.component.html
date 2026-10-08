@@ -1,0 +1,153 @@
+<div class="view-container">
+  <div class="page-title-box">
+    <div>
+      <h2>📊 Resumen General de Bienestar</h2>
+      <p class="subtitle">Visión consolidada de sueño, carga académica y alertas preventivas.</p>
+    </div>
+    <div class="action-buttons">
+      <a routerLink="/sueno" class="btn btn-primary">🌙 Registrar Sueño</a>
+      <a routerLink="/estudio" class="btn btn-secondary">⏱️ Registrar Estudio</a>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="cargando" class="state-card loading">
+    <div class="spinner"></div>
+    <p>Cargando información de bienestar...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMsg && !cargando" class="state-card error">
+    <p>⚠️ {{ errorMsg }}</p>
+    <button (click)="cargarDashboard()" class="btn btn-small">Reintentar</button>
+  </div>
+
+  <!-- Content View -->
+  <div *ngIf="!cargando && dashboardData" class="dashboard-content">
+    
+    <!-- 4 Key Stat Cards -->
+    <div class="stats-grid">
+      <!-- Card 1: Sueño de Anoche -->
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-icon">🌙</span>
+          <span class="stat-title">Sueño de Anoche</span>
+        </div>
+        <div class="stat-value">
+          {{ dashboardData.resumenSueno?.registros?.[0]?.horasSueno || dashboardData.indicadores.promedioSueno7Dias }}h
+        </div>
+        <div class="stat-footer">
+          <span class="badge" [ngClass]="(dashboardData.indicadores.promedioSueno7Dias >= 6) ? 'success' : 'danger'">
+            Calidad: {{ dashboardData.resumenSueno?.registros?.[0]?.calidadSueno || '3' }}/5
+          </span>
+          <span class="subtext">Promedio 7d: {{ dashboardData.indicadores.promedioSueno7Dias }}h</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Carga esta Semana -->
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-icon">📚</span>
+          <span class="stat-title">Carga esta Semana</span>
+        </div>
+        <div class="stat-value" [ngClass]="{'text-warning': dashboardData.indicadores.cargaSemanalPorcentaje > 70}">
+          {{ dashboardData.indicadores.cargaSemanalPorcentaje }}%
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill"
+               [style.width.%]="dashboardData.indicadores.cargaSemanalPorcentaje"
+               [ngClass]="dashboardData.indicadores.cargaSemanalPorcentaje > 70 ? 'bg-danger' : 'bg-primary'">
+          </div>
+        </div>
+        <div class="stat-footer">
+          <span class="subtext">{{ dashboardData.indicadores.totalHorasEstudio7Dias }}h de estudio en 7 días (Máx. 40h)</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Alertas Activas -->
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-icon">🔔</span>
+          <span class="stat-title">Alertas Activas</span>
+        </div>
+        <div class="stat-value" [ngClass]="{'text-danger': dashboardData.indicadores.alertasNoLeidasCount > 0}">
+          {{ dashboardData.indicadores.alertasNoLeidasCount }}
+        </div>
+        <div class="stat-footer">
+          <a routerLink="/alertas" class="link-action">Ver alertas no leídas →</a>
+        </div>
+      </div>
+
+      <!-- Card 4: Nivel de Estrés -->
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-icon">⚡</span>
+          <span class="stat-title">Estrés Actual</span>
+        </div>
+        <div class="stat-value" [ngClass]="{'text-danger': dashboardData.indicadores.nivelEstresActual >= 4}">
+          {{ dashboardData.indicadores.nivelEstresActual }}/5
+        </div>
+        <div class="stat-footer">
+          <span class="badge" [ngClass]="dashboardData.indicadores.nivelEstresActual >= 4 ? 'danger' : 'success'">
+            {{ dashboardData.indicadores.nivelEstresActual >= 4 ? 'Estrés Elevado' : 'Estrés Normal' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Banner Recomendación Diaria -->
+    <div class="recommendation-banner">
+      <div class="banner-icon">💡</div>
+      <div class="banner-text">
+        <h4>Recomendación Preventiva Diaria</h4>
+        <p>{{ recomendacionDiaria }}</p>
+      </div>
+    </div>
+
+    <!-- Grid de Gráfica y Entregas Próximas -->
+    <div class="charts-and-list-grid">
+      
+      <!-- Gráfica de Tendencia de Sueño -->
+      <div class="card-box">
+        <div class="card-box-header">
+          <h3>📈 Tendencia Semanal de Sueño</h3>
+          <span class="subtext">Horas dormidas por día vs Meta (6h)</span>
+        </div>
+        <div class="chart-container">
+          <canvas #chartCanvas></canvas>
+        </div>
+      </div>
+
+      <!-- Próximas Entregas Académicas -->
+      <div class="card-box">
+        <div class="card-box-header">
+          <h3>📝 Próximas Entregas Académicas</h3>
+          <a routerLink="/entregas" class="link-action">Ver todas</a>
+        </div>
+        
+        <div *ngIf="!dashboardData.proximasEntregas.length" class="empty-state">
+          <p>🎉 ¡No tienes entregas pendientes próximas!</p>
+        </div>
+
+        <div class="deliveries-list">
+          <div *ngFor="let entrega of dashboardData.proximasEntregas" class="delivery-item">
+            <div class="delivery-color" [style.background-color]="entrega.asignatura?.color || '#0f766e'"></div>
+            <div class="delivery-details">
+              <h4>{{ entrega.titulo }}</h4>
+              <span class="delivery-subject">{{ entrega.asignatura?.nombre }} • {{ entrega.tipo }}</span>
+            </div>
+            <div class="delivery-meta">
+              <span class="due-date">📅 {{ entrega.fechaLimite | date:'shortDate' }}</span>
+              <span class="badge" [ngClass]="{
+                'warning': entrega.estado === 'EN_PROGRESO',
+                'secondary': entrega.estado === 'PENDIENTE'
+              }">{{ entrega.estado }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

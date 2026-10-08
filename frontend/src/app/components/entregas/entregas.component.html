@@ -1,0 +1,166 @@
+<div class="view-container">
+  <div class="page-title-box">
+    <div>
+      <h2>📝 Entregas y Evaluaciones Académicas</h2>
+      <p class="subtitle">Planifica tareas, parciales y proyectos para mantener al día tus compromisos universitarios.</p>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="exitoMsg" class="alert-box success">
+    ✅ {{ exitoMsg }}
+    <button (click)="exitoMsg = ''" class="close-btn">✕</button>
+  </div>
+
+  <div *ngIf="errorMsg" class="alert-box danger">
+    ⚠️ {{ errorMsg }}
+    <button (click)="errorMsg = ''" class="close-btn">✕</button>
+  </div>
+
+  <div class="two-column-grid">
+    
+    <!-- Form Card -->
+    <div class="card-box">
+      <h3>{{ editandoId ? '✏️ Editar Actividad Académica' : '➕ Crear Nueva Actividad' }}</h3>
+      
+      <form [formGroup]="entregaForm" (ngSubmit)="onSubmit()" class="form-grid">
+        
+        <div class="form-group">
+          <label>Asignatura *</label>
+          <select formControlName="asignaturaId" class="form-control">
+            <option [ngValue]="null" disabled>-- Selecciona una asignatura --</option>
+            <option *ngFor="let a of asignaturas" [value]="a.id">
+              {{ a.nombre }} ({{ a.codigo || 'Sin código' }})
+            </option>
+          </select>
+          <small *ngIf="!asignaturas.length" class="text-danger">⚠️ Debes registrar al menos una asignatura primero.</small>
+        </div>
+
+        <div class="form-group">
+          <label>Título / Descripción de la Entrega *</label>
+          <input type="text" formControlName="titulo" placeholder="Ej. Proyecto Final Sprint 2, Parcial #1..." class="form-control" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tipo de Evaluación *</label>
+            <select formControlName="tipo" class="form-control">
+              <option *ngFor="let t of tiposEntrega" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Fecha y Hora Límite *</label>
+            <input type="datetime-local" formControlName="fechaLimite" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Peso Porcentual % (Opcional)</label>
+            <input type="number" formControlName="porcentajePeso" min="0" max="100" placeholder="Ej. 25" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Estado de la Entrega *</label>
+            <select formControlName="estado" class="form-control">
+              <option *ngFor="let e of estadosEntrega" [value]="e">{{ e }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" [disabled]="guardando || entregaForm.invalid" class="btn btn-primary">
+            {{ guardando ? 'Guardando...' : (editandoId ? 'Guardar Cambios' : 'Registrar Entrega') }}
+          </button>
+          <button type="button" *ngIf="editandoId" (click)="cancelarEdicion()" class="btn btn-secondary">
+            Cancelar
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Filter & List Section -->
+    <div class="card-box">
+      <div class="card-box-header">
+        <h3>📋 Lista de Evaluaciones ({{ entregas.length }})</h3>
+        <div class="filter-pills">
+          <button (click)="filtrarPorEstado('TODAS')" class="filter-pill" [class.active]="filtroEstado === 'TODAS'">Todas</button>
+          <button (click)="filtrarPorEstado('PENDIENTE')" class="filter-pill" [class.active]="filtroEstado === 'PENDIENTE'">Pendientes</button>
+          <button (click)="filtrarPorEstado('EN_PROGRESO')" class="filter-pill" [class.active]="filtroEstado === 'EN_PROGRESO'">En Progreso</button>
+          <button (click)="filtrarPorEstado('COMPLETADA')" class="filter-pill" [class.active]="filtroEstado === 'COMPLETADA'">Completadas</button>
+        </div>
+      </div>
+
+      <div *ngIf="cargando" class="state-card loading">
+        <div class="spinner"></div>
+        <p>Cargando entregas académicas...</p>
+      </div>
+
+      <div *ngIf="!cargando && !entregas.length" class="empty-state">
+        <p>No se encontraron entregas académicas para el filtro seleccionado.</p>
+      </div>
+
+      <div *ngIf="!cargando && entregas.length" class="deliveries-grid">
+        <div *ngFor="let item of entregas" class="delivery-card"
+             [class.overdue]="esVencida(item.fechaLimite, item.estado)"
+             [class.upcoming]="esProxima(item.fechaLimite, item.estado)">
+          
+          <div class="delivery-card-header">
+            <div class="color-badge" [style.background-color]="item.asignatura?.color || '#0f766e'"></div>
+            <div class="delivery-header-title">
+              <h4>{{ item.titulo }}</h4>
+              <span class="delivery-subject">{{ item.asignatura?.nombre }}</span>
+            </div>
+            <span class="type-badge">{{ item.tipo }}</span>
+          </div>
+
+          <div class="delivery-card-body">
+            <div class="meta-info">
+              <span>📅 Fecha Límite: <strong>{{ item.fechaLimite | date:'medium' }}</strong></span>
+              <span *ngIf="item.porcentajePeso">⚖️ Peso: <strong>{{ item.porcentajePeso }}%</strong></span>
+            </div>
+
+            <!-- Overdue or Upcoming Warning Tags -->
+            <div *ngIf="esVencida(item.fechaLimite, item.estado)" class="warning-tag danger">
+              ⚠️ ¡Entrega Vencida!
+            </div>
+            <div *ngIf="esProxima(item.fechaLimite, item.estado)" class="warning-tag warning">
+              ⏰ ¡Próxima a vencer en menos de 3 días!
+            </div>
+          </div>
+
+          <div class="delivery-card-footer">
+            <span class="badge" [ngClass]="{
+              'success': item.estado === 'COMPLETADA',
+              'warning': item.estado === 'EN_PROGRESO',
+              'secondary': item.estado === 'PENDIENTE'
+            }">{{ item.estado }}</span>
+
+            <div class="actions">
+              <button (click)="editar(item)" class="btn-sm btn-secondary">✏️ Editar</button>
+              <button (click)="confirmarEliminar(item)" class="btn-sm btn-danger-outline">🗑️ Eliminar</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Delete Modal -->
+  <div *ngIf="entregaAEliminar" class="modal-overlay">
+    <div class="modal-card">
+      <h3>⚠️ Confirmar Eliminación</h3>
+      <p>¿Estás seguro de que deseas eliminar la entrega <strong>"{{ entregaAEliminar.titulo }}"</strong>?</p>
+      <div class="modal-actions">
+        <button (click)="eliminarConfirmado()" class="btn btn-danger">Sí, Eliminar</button>
+        <button (click)="cancelarEliminar()" class="btn btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

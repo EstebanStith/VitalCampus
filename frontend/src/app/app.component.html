@@ -1,0 +1,90 @@
+<div class="app-layout">
+  
+  <!-- Sidebar Navigation (Desktop & Mobile drawer) -->
+  <aside class="sidebar" [class.open]="mobileMenuOpen">
+    <div class="sidebar-header">
+      <div class="logo-box">
+        <span class="logo-icon">🌿</span>
+        <div>
+          <h1 class="brand-title">VitalCampus</h1>
+          <span class="brand-version">V 1.0 • Bienestar</span>
+        </div>
+      </div>
+      <button (click)="toggleMobileMenu()" class="mobile-close-btn" aria-label="Cerrar menú">✕</button>
+    </div>
+
+    <nav class="nav-menu">
+      <a routerLink="/resumen" routerLinkActive="active" (click)="closeMobileMenu()" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span>Resumen</span>
+      </a>
+
+      <a routerLink="/sueno" routerLinkActive="active" (click)="closeMobileMenu()" class="nav-item">
+        <span class="nav-icon">🌙</span>
+        <span>Sueño</span>
+      </a>
+
+      <a routerLink="/asignaturas" routerLinkActive="active" (click)="closeMobileMenu()" class="nav-item">
+        <span class="nav-icon">📚</span>
+        <span>Asignaturas</span>
+      </a>
+
+      <a routerLink="/entregas" routerLinkActive="active" (click)="closeMobileMenu()" class="nav-item">
+        <span class="nav-icon">📝</span>
+        <span>Entregas</span>
+      </a>
+
+      <a routerLink="/estudio" routerLinkActive="active" (click)="closeMobileMenu()" class="nav-item">
+        <span class="nav-icon">⏱️</span>
+        <span>Horas de Estudio</span>
+      </a>
+
+      <a routerLink="/alertas" routerLinkActive="active" (click)="closeMobileMenu()" class="nav-item">
+        <span class="nav-icon">🔔</span>
+        <span>Alertas</span>
+        <span *ngIf="alertasNoLeidasCount > 0" class="nav-badge">{{ alertasNoLeidasCount }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-mini-card">
+        <div class="avatar">ED</div>
+        <div class="user-info">
+          <span class="user-name">{{ usuarioNombre }}</span>
+          <span class="user-email">{{ usuarioCorreo }}</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Overlay for mobile drawer -->
+  <div *ngIf="mobileMenuOpen" (click)="closeMobileMenu()" class="mobile-overlay"></div>
+
+  <!-- Main Content Area -->
+  <div class="main-wrapper">
+    
+    <!-- Top Header -->
+    <header class="top-bar">
+      <button (click)="toggleMobileMenu()" class="mobile-hamburger-btn" aria-label="Abrir menú">
+        ☰
+      </button>
+
+      <div class="top-title">
+        <span>Plataforma de Bienestar Universitario</span>
+      </div>
+
+      <div class="top-user-box">
+        <span class="demo-tag">Modo Demo MVP</span>
+        <div class="top-avatar">🎓</div>
+        <div class="top-user-name">{{ usuarioNombre }}</div>
+      </div>
+    </header>
+
+    <!-- Page Content Container -->
+    <main class="page-body">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+
+</div>

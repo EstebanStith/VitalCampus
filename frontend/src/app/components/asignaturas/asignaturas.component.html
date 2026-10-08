@@ -1,0 +1,138 @@
+<div class="view-container">
+  <div class="page-title-box">
+    <div>
+      <h2>📚 Gestión de Asignaturas</h2>
+      <p class="subtitle">Organiza tus materias académicas y asigna identificadores visuales para el seguimiento del tiempo.</p>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="exitoMsg" class="alert-box success">
+    ✅ {{ exitoMsg }}
+    <button (click)="exitoMsg = ''" class="close-btn">✕</button>
+  </div>
+
+  <div *ngIf="errorMsg" class="alert-box danger">
+    ⚠️ {{ errorMsg }}
+    <button (click)="errorMsg = ''" class="close-btn">✕</button>
+  </div>
+
+  <div class="two-column-grid">
+    
+    <!-- Form Card -->
+    <div class="card-box">
+      <h3>{{ editandoId ? '✏️ Editar Asignatura' : '➕ Registrar Asignatura' }}</h3>
+      
+      <form [formGroup]="asignaturaForm" (ngSubmit)="onSubmit()" class="form-grid">
+        
+        <div class="form-group">
+          <label>Nombre de la Asignatura *</label>
+          <input type="text" formControlName="nombre" placeholder="Ej. Programación Web, Álgebra Lineal" class="form-control" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Código (Opcional)</label>
+            <input type="text" formControlName="codigo" placeholder="Ej. MAT-101" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Créditos (Opcional)</label>
+            <input type="number" formControlName="creditos" min="1" max="20" placeholder="Ej. 4" class="form-control" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Color Distintivo Visual</label>
+          <div class="color-picker-row">
+            <input type="color" formControlName="color" class="color-input" />
+            <div class="palette-chips">
+              <span *ngFor="let c of paletteColors"
+                    [style.background-color]="c"
+                    (click)="asignaturaForm.patchValue({ color: c })"
+                    class="color-chip"
+                    [class.selected]="asignaturaForm.get('color')?.value === c">
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="activa" />
+            <span>Asignatura Activa este Semestre</span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" [disabled]="guardando || asignaturaForm.invalid" class="btn btn-primary">
+            {{ guardando ? 'Guardando...' : (editandoId ? 'Guardar Cambios' : 'Registrar Asignatura') }}
+          </button>
+          <button type="button" *ngIf="editandoId" (click)="cancelarEdicion()" class="btn btn-secondary">
+            Cancelar
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Subjects Grid / Cards -->
+    <div class="card-box">
+      <h3>📖 Asignaturas Registradas ({{ asignaturas.length }})</h3>
+
+      <div *ngIf="cargando" class="state-card loading">
+        <div class="spinner"></div>
+        <p>Cargando materias...</p>
+      </div>
+
+      <div *ngIf="!cargando && !asignaturas.length" class="empty-state">
+        <p>Aún no tienes asignaturas creadas. ¡Agrega tu primera materia usando el formulario!</p>
+      </div>
+
+      <div *ngIf="!cargando && asignaturas.length" class="subjects-grid">
+        <div *ngFor="let a of asignaturas" class="subject-card" [style.border-left-color]="a.color || '#0f766e'">
+          <div class="subject-card-header">
+            <div class="color-badge" [style.background-color]="a.color || '#0f766e'"></div>
+            <div class="subject-title">
+              <h4>{{ a.nombre }}</h4>
+              <span class="subject-code">{{ a.codigo || 'Sin código' }}</span>
+            </div>
+            <span class="status-pill" [class.inactive]="!a.activa">
+              {{ a.activa ? 'Activa' : 'Inactiva' }}
+            </span>
+          </div>
+
+          <div class="subject-body">
+            <div class="info-tag">
+              <span>🎓 Créditos:</span> <strong>{{ a.creditos || 'N/A' }}</strong>
+            </div>
+            <div class="info-tag" *ngIf="a._count">
+              <span>📝 Entregas:</span> <strong>{{ a._count.entregas }}</strong> |
+              <span>⏱️ Horas:</span> <strong>{{ a._count.registrosEstudio }} ses.</strong>
+            </div>
+          </div>
+
+          <div class="subject-footer">
+            <button (click)="editar(a)" class="btn-sm btn-secondary">✏️ Editar</button>
+            <button (click)="confirmarEliminar(a)" class="btn-sm btn-danger-outline">🗑️ Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Delete Modal -->
+  <div *ngIf="asignaturaAEliminar" class="modal-overlay">
+    <div class="modal-card">
+      <h3>⚠️ Confirmar Eliminación de Asignatura</h3>
+      <p>¿Estás seguro de que deseas eliminar la asignatura <strong>"{{ asignaturaAEliminar.nombre }}"</strong>? Se eliminarán también sus entregas y registros de estudio asociados.</p>
+      <div class="modal-actions">
+        <button (click)="eliminarConfirmado()" class="btn btn-danger">Sí, Eliminar Todo</button>
+        <button (click)="cancelarEliminar()" class="btn btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+</div>
